@@ -21,6 +21,7 @@ use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Common\Lists\IssueTypeRegistry;
 use OpenEMR\Core\OEGlobalsBag;
+use OpenEMR\Services\ActiveMedicationListService;
 
 CsrfUtils::checkCsrfInput(INPUT_POST, dieOnFail: true);
 
@@ -225,6 +226,12 @@ foreach ($ISSUE_TYPES as $key => $arr) {
         }
 
         if ($id == "medication_ps_expand") {
+            $medListService = new ActiveMedicationListService();
+            $activeMeds = $medListService->getActiveList((int) $pid);
+            $viewArgs['list'] = $activeMeds;
+            $viewArgs['inactiveCount'] = count($medListService->getInactiveList((int) $pid, $activeMeds));
+            $viewArgs['printHref'] = OEGlobalsBag::getInstance()->getWebRoot()
+                . "/interface/patient_file/summary/active_medications_print.php";
             echo $t->render('patient/card/medication.html.twig', $viewArgs);
         } else {
             echo $t->render('patient/card/medical_problems.html.twig', $viewArgs);
